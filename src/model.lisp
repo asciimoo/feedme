@@ -4,6 +4,11 @@
   (:use :common-lisp :crane)
   (:import-from :feedme.fetch
                 :fetch-items)
+  (:import-from :sxql
+                :from
+                :left-join
+                :where
+                :select)
   (:export :add-item
            :add-feed
            :unread-items
@@ -54,7 +59,11 @@
   (crane:filter 'feed))
 
 (defun unread-items ()
-  (crane:filter 'item (:= :archived 0)))
+  (crane:query (select (:*)
+                       (from :item)
+                       (left-join :feed :on
+                                  (:= :feed.id :item.feed))
+                       (where (:= :archived 0)))))
 
 (defun update-feed (feed-id url)
   (loop for feed-item in (fetch-items url) do

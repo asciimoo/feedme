@@ -18,6 +18,9 @@
 (defvar *app* (make-instance 'ningle:<app>))
 (defvar *handler* nil)
 
+(defun get-member (member-name l)
+  (second (member member-name l)))
+
 (defun style ()
   "body {
     margin: 0;
@@ -38,7 +41,9 @@
    .item { overflow: hidden; }
    .item img { max-width: 600px; }
    .item-title a { color: #1abc9c; }
+   .item p { clear: both; }
    .clear { clear: both; }
+   .feed-name { padding: 0; margin: -1.9em 0 0; font-size: 0.8em; }
    #top_bar { margin: 0; padding: 4px; background-color: #111111; }
    #top_bar .menu { margin: 0; }
    #top_bar .menu li { float: left; list-style-type: none; margin-left: 20px; }
@@ -74,18 +79,23 @@
               (markup (:div (:h4 "hurray, no unread items")))
               (markup (:div (:a :href (concatenate 'string "/archive?max_id="
                                            (princ-to-string
-                                             (slot-value (first (last items)) 'feedme.model::id))))
+                                             (get-member ':|id| (car (last items))))))
                         "archive this view")))))
-    (markup (:div :id "items"
-                  (:ul (loop for i in items
-                             collect (let ((item-title (slot-value i 'feedme.model::title))
-                                           (item-content (slot-value i 'feedme.model::content))
-                                           (item-url (slot-value i 'feedme.model::url)))
-                                       (markup (:li
-                                                 (:div :class "item"
-                                                 (:h2 :class "item-title" (:a :href item-url item-title))
-                                                 (:p item-content)
-                                                 (:hr))))))))
+    (markup (:div
+             :id "items"
+             (:ul (loop for i in items
+                        collect (markup (:li
+                                         (:div
+                                          :class "item"
+                                          (:h2
+                                           :class "item-title" (:a
+                                                                :href (get-member ':|url| i)
+                                                                (get-member ':|title| i)))
+                                          (:div
+                                           :class "feed-name"
+                                           (get-member ':|name| i))
+                                          (:p (get-member ':|content| i))
+                                          (:hr)))))))
             (:p archive-html))))
 
 (setf (ningle:route *app* "/")
@@ -148,7 +158,8 @@
 (defun start-webapp ()
   (if (not (is-running?))
     (setf *handler* (clack:clackup *app*
-                          :server :woo))))
+                                   :server :woo
+                                   :use-thread t))))
 
 (defun stop-webapp ()
   (if (is-running?)

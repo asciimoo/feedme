@@ -10,7 +10,8 @@
                 :add-item
                 :add-feed
                 :feeds
-                :update-feeds)
+                :update-feeds
+                :unread-items)
   (:import-from :feedme.webapp
                 :start-webapp
                 :reload-webapp
@@ -21,6 +22,7 @@
            :start-webapp
            :reload-webapp
            :stop-webapp
-           :update-feeds))
+           :update-feeds
+           :unread-items))
 
 (in-package :feedme)
